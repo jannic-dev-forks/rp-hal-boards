@@ -100,6 +100,10 @@ Example that shows how to use the
 [embedded_sdmmc crate](https://github.com/rust-embedded-community/embedded-sdmmc-rs)
 with the Raspberry Pi Pico.
 
+### [pico_alloc](./examples/pico_alloc.rs)
+
+Example that shows the use of [alloc-cortex-m](https://github.com/rust-embedded/alloc-cortex-m) with the Raspberry Pi pico. The LED blinks slower each time an integer is added to the Vec. **Requires Nighlty Toolchain**
+
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to

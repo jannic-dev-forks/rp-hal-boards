@@ -34,6 +34,7 @@ ws2812-pio = { git = "https://github.com/ithinuel/ws2812-pio-rs", rev = "4f0d81e
 ssd1306 = "0.7.0"
 embedded-graphics = "0.7.1"
 
+alloc-cortex-m = { git = "https://github.com/rust-embedded/alloc-cortex-m", rev = "a1be51edcee5e1301549a1373c0c64b94de0323c" }
 defmt = "0.2.0"
 defmt-rtt = "0.2.0"
 
