@@ -36,7 +36,7 @@
 //!     - (o) connected lines
 //! ```
 //!
-//! See the `Cargo.toml` file for Copyright and licence details.
+//! See the `Cargo.toml` file for Copyright and license details.
 
 #![no_std]
 #![no_main]
@@ -45,11 +45,10 @@
 use core::fmt::Write;
 
 // The macro for our start-up function
-use cortex_m_rt::entry;
+use rp_pico::entry;
 
 // Time handling traits:
-use embedded_time::duration::*;
-use embedded_time::rate::Extensions;
+use fugit::{ExtU32, RateExtU32};
 
 // CountDown timer for the counter on the display:
 use embedded_hal::timer::CountDown;
@@ -122,8 +121,8 @@ fn main() -> ! {
     );
 
     // Configure two pins as being I²C, not GPIO
-    let sda_pin = pins.gpio16.into_mode::<hal::gpio::FunctionI2C>();
-    let scl_pin = pins.gpio17.into_mode::<hal::gpio::FunctionI2C>();
+    let sda_pin = pins.gpio16.into_function::<hal::gpio::FunctionI2C>();
+    let scl_pin = pins.gpio17.into_function::<hal::gpio::FunctionI2C>();
 
     // Create the I²C driver, using the two pre-configured pins. This will fail
     // at compile time if the pins are in the wrong mode, or if this I²C
@@ -134,7 +133,7 @@ fn main() -> ! {
         scl_pin,
         400.kHz(),
         &mut pac.RESETS,
-        clocks.peripheral_clock,
+        &clocks.peripheral_clock,
     );
 
     // Create the I²C display interface:
@@ -151,7 +150,7 @@ fn main() -> ! {
         .text_color(BinaryColor::On)
         .build();
 
-    let timer = hal::Timer::new(pac.TIMER, &mut pac.RESETS);
+    let timer = hal::Timer::new(pac.TIMER, &mut pac.RESETS, &clocks);
     let mut delay = timer.count_down();
 
     let mut count = 0;
@@ -182,7 +181,7 @@ fn main() -> ! {
         display.flush().unwrap();
 
         // Wait a bit:
-        delay.start(500.milliseconds());
+        delay.start(500.millis());
         let _ = nb::block!(delay.wait());
     }
 }

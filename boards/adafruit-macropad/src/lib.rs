@@ -5,7 +5,7 @@ pub use rp2040_hal as hal;
 #[cfg(feature = "rt")]
 extern crate cortex_m_rt;
 #[cfg(feature = "rt")]
-pub use cortex_m_rt::entry;
+pub use hal::entry;
 
 // Adafruit macropad uses W25Q64JVxQ flash chip. Should work with BOOT_LOADER_W25Q080 (untested)
 
@@ -37,23 +37,23 @@ hal::bsp_pins!(
     Gpio14 {
         name: speaker_shutdown
     },
-    Gpio15 { name: speaker },
+    Gpio16 { name: speaker },
     Gpio17 {
         name: encoder_rota,
-        aliases: { PullUpInput: RotaryA }
+        aliases: { FunctionSioInput, PullUp: RotaryA }
     },
     Gpio18 {
         name: encoder_rotb,
-        aliases: { PullUpInput: RotaryB }
+        aliases: { FunctionSioInput, PullUp: RotaryB }
     },
     Gpio19 { name: neopixel },
     Gpio20 {
         name: sda,
-        aliases: { FunctionI2C: Sda }
+        aliases: { FunctionI2C, PullUp: Sda }
     },
     Gpio21 {
         name: scl,
-        aliases: { FunctionI2C: Scl }
+        aliases: { FunctionI2C, PullUp: Scl }
     },
     // This CS is on the wrong SPI channel so cannot be controlled by the peripheral
     Gpio22 { name: oled_cs },
@@ -61,14 +61,16 @@ hal::bsp_pins!(
     Gpio24 { name: oled_dc },
     Gpio26 {
         name: sclk,
-        aliases: { FunctionSpi: Sclk }
+        aliases: { FunctionSpi, PullNone: Sclk }
     },
     Gpio27 {
         name: mosi,
-        aliases: { FunctionSpi: Mosi }
+        aliases: { FunctionSpi, PullNone: Mosi }
     },
     Gpio28 {
         name: miso,
-        aliases: { FunctionSpi: Miso }
+        aliases: { FunctionSpi, PullNone: Miso }
     },
 );
+
+pub const XOSC_CRYSTAL_FREQ: u32 = 12_000_000;

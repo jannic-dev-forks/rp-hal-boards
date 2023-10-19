@@ -1,44 +1,73 @@
 [package]
 name = "rp-pico"
-version = "0.3.0"
-authors = ["evan <evanmolder@gmail.com>"]
+version = "0.8.0"
+authors = ["evan <evanmolder@gmail.com>", "The rp-rs Developers"]
 edition = "2018"
-homepage = "https://github.com/rp-rs/rp-hal/tree/main/boards/pico"
+homepage = "https://github.com/rp-rs/rp-hal-boards/tree/main/boards/rp-pico"
 description = "Board Support Package for the Raspberry Pi Pico"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/rp-rs/rp-hal.git"
+repository = "https://github.com/rp-rs/rp-hal-boards.git"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cortex-m = "0.7.2"
-rp2040-boot2 = { version = "0.2.0", optional = true }
-rp2040-hal = { path = "../../rp2040-hal", version = "0.4.0"}
-cortex-m-rt = { version = "0.7", optional = true }
-embedded-time = "0.12.0"
-usb-device= "0.2.8"
-usbd-serial = "0.1.1"
-usbd-hid = "0.5.1"
-futures = { version = "0.3", default-features = false, optional = true }
+cortex-m-rt = { workspace = true, optional = true }
+fugit.workspace = true
+rp2040-boot2 = { workspace = true, optional = true }
+rp2040-hal.workspace = true
+usb-device.workspace = true
 
 [dev-dependencies]
-panic-halt= "0.2.0"
-embedded-hal ="0.2.5"
-cortex-m-rtic = "0.6.0-rc.4"
-nb = "1.0"
-i2c-pio = { git = "https://github.com/ithinuel/i2c-pio-rs", rev = "df06e4ac94a5b2c985d6a9426dc4cc9be0d535c0" }
-heapless = "0.7.9"
-embedded-sdmmc = { git = "https://github.com/rust-embedded-community/embedded-sdmmc-rs.git" }
-smart-leds = "0.3.0"
-ws2812-pio = { git = "https://github.com/ithinuel/ws2812-pio-rs", rev = "4f0d81e594ea9934f9c4c38ed9824ad0cce4ebb5" }
-ssd1306 = "0.7.0"
-embedded-graphics = "0.7.1"
+alloc-cortex-m.workspace = true
+cortex-m.workspace = true
+cortex-m-rtic.workspace = true
+critical-section.workspace = true
+embedded-graphics.workspace = true
+embedded-hal.workspace = true
+embedded-sdmmc.workspace = true
+hd44780-driver.workspace = true
+heapless.workspace = true
+i2c-pio.workspace = true
+nb.workspace = true
+panic-halt.workspace = true
+pio.workspace = true
+pio-proc.workspace = true
+rp2040-hal = { workspace = true, features = [ "defmt" ] }
+smart-leds.workspace = true
+ssd1306.workspace = true
+usbd-hid.workspace = true
+usbd-serial.workspace = true
+ws2812-pio.workspace = true
 
-alloc-cortex-m = { git = "https://github.com/rust-embedded/alloc-cortex-m", rev = "a1be51edcee5e1301549a1373c0c64b94de0323c" }
-defmt = "0.2.0"
-defmt-rtt = "0.2.0"
+defmt.workspace = true
+defmt-rtt.workspace = true
 
 [features]
-default = ["boot2", "rt"]
+# This is the set of features we enable by default
+default = ["boot2", "rt", "critical-section-impl", "rom-func-cache"]
+
+# critical section that is safe for multicore use
+critical-section-impl = ["rp2040-hal/critical-section-impl"]
+
+# 2nd stage bootloaders for rp2040
 boot2 = ["rp2040-boot2"]
+
+# Minimal startup / runtime for Cortex-M microcontrollers
 rt = ["cortex-m-rt","rp2040-hal/rt"]
+
+# This enables a fix for USB errata 5: USB device fails to exit RESET state on busy USB bus.
+# Only required for RP2040 B0 and RP2040 B1, but it also works for RP2040 B2 and above
+rp2040-e5 = ["rp2040-hal/rp2040-e5"]
+
+# Memoize(cache) ROM function pointers on first use to improve performance
+rom-func-cache = ["rp2040-hal/rom-func-cache"]
+
+# Disable automatic mapping of language features (like floating point math) to ROM functions
+disable-intrinsics = ["rp2040-hal/disable-intrinsics"]
+
+# This enables ROM functions for f64 math that were not present in the earliest RP2040s
+rom-v2-intrinsics = ["rp2040-hal/rom-v2-intrinsics"]
+
+[[example]]
+name = "pico_rtic_monotonic"
+required-features = ["rp2040-hal/rtic-monotonic"]

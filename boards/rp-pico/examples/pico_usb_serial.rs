@@ -7,13 +7,13 @@
 //! ASCII characters are converted to upercase, so you can tell it is working
 //! and not just local-echo!
 //!
-//! See the `Cargo.toml` file for Copyright and licence details.
+//! See the `Cargo.toml` file for Copyright and license details.
 
 #![no_std]
 #![no_main]
 
 // The macro for our start-up function
-use cortex_m_rt::entry;
+use rp_pico::entry;
 
 // Ensure we halt the program on panic (if we don't mention this crate it won't
 // be linked)
@@ -32,6 +32,10 @@ use usb_device::{class_prelude::*, prelude::*};
 
 // USB Communications Class Device support
 use usbd_serial::SerialPort;
+
+// Used to demonstrate writing formatted strings
+use core::fmt::Write;
+use heapless::String;
 
 /// Entry point to our bare-metal application.
 ///
@@ -63,6 +67,19 @@ fn main() -> ! {
     .ok()
     .unwrap();
 
+    let timer = hal::Timer::new(pac.TIMER, &mut pac.RESETS, &clocks);
+
+    #[cfg(feature = "rp2040-e5")]
+    {
+        let sio = hal::Sio::new(pac.SIO);
+        let _pins = rp_pico::Pins::new(
+            pac.IO_BANK0,
+            pac.PADS_BANK0,
+            sio.gpio_bank0,
+            &mut pac.RESETS,
+        );
+    }
+
     // Set up the USB driver
     let usb_bus = UsbBusAllocator::new(hal::usb::UsbBus::new(
         pac.USBCTRL_REGS,
@@ -83,13 +100,22 @@ fn main() -> ! {
         .device_class(2) // from: https://www.usb.org/defined-class-codes
         .build();
 
-    let timer = hal::Timer::new(pac.TIMER, &mut pac.RESETS);
     let mut said_hello = false;
     loop {
         // A welcome message at the beginning
-        if !said_hello && timer.get_counter() >= 2_000_000 {
+        if !said_hello && timer.get_counter().ticks() >= 2_000_000 {
             said_hello = true;
             let _ = serial.write(b"Hello, World!\r\n");
+
+            let time = timer.get_counter().ticks();
+            let mut text: String<64> = String::new();
+            writeln!(&mut text, "Current timer ticks: {}", time).unwrap();
+
+            // This only works reliably because the number of bytes written to
+            // the serial port is smaller than the buffers available to the USB
+            // peripheral. In general, the return value should be handled, so that
+            // bytes not transferred yet don't get lost.
+            let _ = serial.write(text.as_bytes());
         }
 
         // Check for new data

@@ -6,7 +6,7 @@
 //! using the PIO peripheral as an I2C bus controller.
 //! The pins used for the I2C can be remapped to any other pin available to the PIO0 peripheral.
 //!
-//! See the `Cargo.toml` file for Copyright and licence details.
+//! See the `Cargo.toml` file for Copyright and license details.
 
 #![no_std]
 #![no_main]
@@ -15,13 +15,13 @@
 use core::fmt::Write as FmtWrite;
 
 // The macro for our start-up function
-use cortex_m_rt::entry;
+use rp_pico::entry;
 
 // I2C HAL traits & Types.
 use embedded_hal::blocking::i2c::{Operation, Read, Transactional, Write};
 
 // Time handling traits
-use embedded_time::rate::*;
+use fugit::RateExtU32;
 
 // Ensure we halt the program on panic (if we don't mention this crate it won't
 // be linked)
@@ -37,6 +37,9 @@ use rp_pico::hal::pac;
 // A shorter alias for the Hardware Abstraction Layer, which provides
 // higher-level drivers.
 use rp_pico::hal;
+
+// UART related types
+use hal::uart::{DataBits, StopBits, UartConfig};
 
 /// Prints the temperature received from the sensor
 fn print_temperature(serial: &mut impl FmtWrite, temp: [u8; 2]) {
@@ -90,15 +93,15 @@ fn main() -> ! {
 
     let uart_pins = (
         // UART TX (characters sent from RP2040) on pin 1 (GPIO0)
-        pins.gpio0.into_mode::<hal::gpio::FunctionUart>(),
+        pins.gpio0.into_function::<hal::gpio::FunctionUart>(),
         // UART RX (characters received by RP2040) on pin 2 (GPIO1)
-        pins.gpio1.into_mode::<hal::gpio::FunctionUart>(),
+        pins.gpio1.into_function::<hal::gpio::FunctionUart>(),
     );
 
     let mut uart = hal::uart::UartPeripheral::new(pac.UART0, uart_pins, &mut pac.RESETS)
         .enable(
-            hal::uart::common_configs::_115200_8_N_1,
-            clocks.peripheral_clock.into(),
+            UartConfig::new(115_200.Hz(), DataBits::Eight, None, StopBits::One),
+            clocks.peripheral_clock.freq(),
         )
         .unwrap();
 
@@ -109,7 +112,7 @@ fn main() -> ! {
         pins.gpio20,
         pins.gpio21,
         sm0,
-        100_000.Hz(),
+        100.kHz(),
         clocks.system_clock.freq(),
     );
 
@@ -149,7 +152,7 @@ fn main() -> ! {
     print_temperature(&mut uart, temp);
 
     loop {
-        cortex_m::asm::nop();
+        cortex_m::asm::wfi();
     }
 }
 

@@ -1,54 +1,43 @@
 on: [push, pull_request]
 name: Build and Test check
 jobs:
-  check:
-    name: cargo-check
+  builds:
+    name: Build checks
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        features: ["", "--features rp2040-e5"]
+        mode: ["", "--release"]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          target: thumbv6m-none-eabi
+      - name: Build workspace
+        run: cargo build ${{ matrix.mode }} --workspace ${{ matrix.features }}
+      - name: Build workspace and examples
+        run: cargo build ${{ matrix.mode }} --workspace --examples ${{ matrix.features }}
+      - name: List built examples and clean
+        run: rm -vrf target/thumbv6m-none-eabi/*/examples/* | sed -e "s/removed '\(.*\)'/\1/" | xargs -l basename | grep -Ev '(-|\.d)'
+      - name: Test
+        run: cargo test --tests --target x86_64-unknown-linux-gnu ${{ matrix.features }}
+      - name: Test docs
+        run: cargo test --doc --target x86_64-unknown-linux-gnu ${{ matrix.features }}
+      - name: Clean
+        run: cargo clean
+  udeps:
+    name: Check rp2040-hal for unused dependencies
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: nightly-2023-06-27
           target: thumbv6m-none-eabi
-          override: true
-          profile: minimal
-      - uses: actions-rs/cargo@v1
+      - name: Install cargo-udeps
+        uses: baptiste0928/cargo-install@v2
         with:
-          command: build
-          args: --workspace
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --workspace --examples
-      - run: echo "Debug examples built:" && ls target/thumbv6m-none-eabi/debug/examples/ |grep -v '-' |grep -v '\.d'
-      - run: rm target/thumbv6m-none-eabi/debug/examples/ -rf
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --workspace --examples --features eh1_0_alpha
-      - run: echo "Debug eh1_0 examples built:" && ls target/thumbv6m-none-eabi/debug/examples/ |grep -v '-' |grep -v '\.d'
-      - run: rm target/thumbv6m-none-eabi/debug/examples/ -rf
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --workspace --examples
-      - run: echo "Release examples built:" && ls target/thumbv6m-none-eabi/release/examples/ |grep -v '-' |grep -v '\.d'
-      - run: rm target/thumbv6m-none-eabi/release/examples/ -rf
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --workspace --examples --features eh1_0_alpha
-      - run: echo "Release eh1_0 examples built:" && ls target/thumbv6m-none-eabi/release/examples/ |grep -v '-' |grep -v '\.d'
-      - run: rm target/thumbv6m-none-eabi/release/examples/ -rf
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --doc --target x86_64-unknown-linux-gnu
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --doc --target x86_64-unknown-linux-gnu --features chrono
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --tests --target x86_64-unknown-linux-gnu
+          crate: cargo-udeps
+          version: "=0.1.41"
+      - name: Check unused deps
+        run: cargo udeps ${{ matrix.mode }} --workspace ${{ matrix.features }}

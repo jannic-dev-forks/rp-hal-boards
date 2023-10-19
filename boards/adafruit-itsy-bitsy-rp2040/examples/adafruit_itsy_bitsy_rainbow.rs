@@ -2,11 +2,10 @@
 #![no_std]
 #![no_main]
 
+use adafruit_itsy_bitsy_rp2040::entry;
 use core::iter::once;
-use cortex_m_rt::entry;
-use embedded_hal::digital::v2::OutputPin;
 use embedded_hal::timer::CountDown;
-use embedded_time::duration::Extensions;
+use fugit::ExtU32;
 use panic_halt as _;
 use smart_leds::{brightness, SmartLedsWrite, RGB8};
 use ws2812_pio::Ws2812;
@@ -14,6 +13,7 @@ use ws2812_pio::Ws2812;
 use adafruit_itsy_bitsy_rp2040::{
     hal::{
         clocks::{init_clocks_and_plls, Clock},
+        gpio::PinState,
         pac,
         pio::PIOExt,
         watchdog::Watchdog,
@@ -48,14 +48,12 @@ fn main() -> ! {
         &mut pac.RESETS,
     );
 
-    let led = pins.neopixel_data.into_mode();
+    let led = pins.neopixel_data.into_function();
 
     pins.neopixel_power
-        .into_push_pull_output()
-        .set_high()
-        .unwrap();
+        .into_push_pull_output_in_state(PinState::High);
 
-    let timer = Timer::new(pac.TIMER, &mut pac.RESETS);
+    let timer = Timer::new(pac.TIMER, &mut pac.RESETS, &clocks);
     let mut delay = timer.count_down();
 
     let (mut pio, sm0, _, _, _) = pac.PIO0.split(&mut pac.RESETS);
@@ -72,7 +70,7 @@ fn main() -> ! {
         ws.write(brightness(once(wheel(n)), 32)).unwrap();
         n = n.wrapping_add(1);
 
-        delay.start(25.milliseconds());
+        delay.start(25.millis());
         let _ = nb::block!(delay.wait());
     }
 }

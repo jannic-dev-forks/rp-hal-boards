@@ -6,6 +6,7 @@
 #![no_std]
 #![no_main]
 
+use adafruit_feather_rp2040::entry;
 use adafruit_feather_rp2040::{
     hal::{
         clocks::{init_clocks_and_plls, Clock},
@@ -18,9 +19,8 @@ use adafruit_feather_rp2040::{
     Pins, XOSC_CRYSTAL_FREQ,
 };
 use core::iter::once;
-use cortex_m_rt::entry;
 use embedded_hal::timer::CountDown;
-use embedded_time::duration::Extensions;
+use fugit::ExtU32;
 use panic_halt as _;
 use smart_leds::{brightness, SmartLedsWrite, RGB8};
 use ws2812_pio::Ws2812;
@@ -51,14 +51,14 @@ fn main() -> ! {
         &mut pac.RESETS,
     );
 
-    let timer = Timer::new(pac.TIMER, &mut pac.RESETS);
+    let timer = Timer::new(pac.TIMER, &mut pac.RESETS, &clocks);
     let mut delay = timer.count_down();
 
     // Configure the addressable LED
     let (mut pio, sm0, _, _, _) = pac.PIO0.split(&mut pac.RESETS);
     let mut ws = Ws2812::new(
         // The onboard NeoPixel is attached to GPIO pin #16 on the Feather RP2040.
-        pins.neopixel.into_mode(),
+        pins.neopixel.into_function(),
         &mut pio,
         sm0,
         clocks.peripheral_clock.freq(),
@@ -71,7 +71,7 @@ fn main() -> ! {
         ws.write(brightness(once(wheel(n)), 32)).unwrap();
         n = n.wrapping_add(1);
 
-        delay.start(25.milliseconds());
+        delay.start(25.millis());
         let _ = nb::block!(delay.wait());
     }
 }

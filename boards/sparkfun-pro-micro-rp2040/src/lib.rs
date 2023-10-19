@@ -4,7 +4,7 @@ pub use rp2040_hal as hal;
 #[cfg(feature = "rt")]
 extern crate cortex_m_rt;
 #[cfg(feature = "rt")]
-pub use cortex_m_rt::entry;
+pub use hal::entry;
 
 /// The linker will place this boot block at the start of our program image. We
 /// need this to help the ROM bootloader get our code up and running.
@@ -32,6 +32,7 @@ hal::bsp_pins!(
     Gpio20 { name: cipo },
     Gpio21 { name: ncs },
     Gpio22 { name: sck },
+    Gpio23 { name: copi },
     Gpio25 { name: led },
     Gpio26 { name: adc0 },
     Gpio27 { name: adc1 },

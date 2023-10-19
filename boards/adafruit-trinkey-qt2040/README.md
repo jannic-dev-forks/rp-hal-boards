@@ -6,7 +6,7 @@ an [Adafruit Trinkey QT2040] - a 3x4 keyboard and OLED combo board from Adafruit
 This crate includes the [rp2040-hal], but also configures each pin of the
 RP2040 chip according to how it is connected up on the Trinkey.
 
-[adafruit-trinkey-qt2040]: https://github.com/rp-rs/rp-hal/tree/main/boards/adafruit-trinkey-qt2040
+[adafruit-trinkey-qt2040]: https://github.com/rp-rs/rp-hal-boards/tree/main/boards/adafruit-trinkey-qt2040
 [adafruit trinkey qt2040]: https://www.adafruit.com/product/5056
 [rp2040-hal]: https://github.com/rp-rs/rp-hal/tree/main/rp2040-hal
 
@@ -15,7 +15,7 @@ RP2040 chip according to how it is connected up on the Trinkey.
 To use this crate, your `Cargo.toml` file should contain:
 
 ```toml
-adafruit-trinkey-qt2040 = "0.1.0"
+adafruit-trinkey-qt2040 = "0.5.0"
 ```
 
 In your program, you will need to call `adafruit-trinkey-qt2040::Pins::new` to create
@@ -26,15 +26,15 @@ devices. See the [examples](./examples) folder for more details.
 
 ### General Instructions
 
-To compile an example, clone the _rp-hal_ repository and run:
+To compile an example, clone the _rp-hal-boards_ repository and run:
 
 ```console
-rp-hal/boards/adafruit-trinkey-qt2040 $ cargo build --release --example <name>
+rp-hal-boards/boards/adafruit-trinkey-qt2040 $ cargo build --release --example <name>
 ```
 
 You will get an ELF file called
 `./target/thumbv6m-none-eabi/release/examples/<name>`, where the `target`
-folder is located at the top of the _rp-hal_ repository checkout. Normally
+folder is located at the top of the _rp-hal-boards_ repository checkout. Normally
 you would also need to specify `--target=thumbv6m-none-eabi` but when
 building examples from this git repository, that is set as the default.
 
@@ -43,7 +43,7 @@ USB drive exported by the RP2040 bootloader, simply boot your board into
 bootloader mode and run:
 
 ```console
-rp-hal/boards/adafruit-trinkey-qt2040 $ cargo run --release --example <name>
+rp-hal-boards/boards/adafruit-trinkey-qt2040 $ cargo run --release --example <name>
 ```
 
 If you get an error about not being able to find `elf2uf2-rs`, try:
@@ -69,7 +69,7 @@ The steps are:
 3. Make some changes to the code or documentation.
 4. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 5. Push to the Feature Branch (`git push origin feature/AmazingFeature`)
-6. Create a [New Pull Request](https://github.com/rp-rs/rp-hal/pulls)
+6. Create a [New Pull Request](https://github.com/rp-rs/rp-hal-boards/pulls)
 7. An admin will review the Pull Request and discuss any changes that may be required.
 8. Once everyone is happy, the Pull Request can be merged by an admin, and your work is part of our project!
 
@@ -85,9 +85,9 @@ to intervene to uphold that code of conduct.
 ## License
 
 The contents of this repository are dual-licensed under the _MIT OR Apache
-2.0_ License. That means you can chose either the MIT licence or the
-Apache-2.0 licence when you re-use this code. See `MIT` or `APACHE2.0` for more
-information on each specific licence.
+2.0_ License. That means you can choose either the MIT license or the
+Apache-2.0 license when you re-use this code. See `MIT` or `APACHE2.0` for more
+information on each specific license.
 
 Any submissions to this project (e.g. as Pull Requests) must be made available
 under these terms.

@@ -1,10 +1,11 @@
 #![no_std]
 
 pub use rp2040_hal as hal;
+
 #[cfg(feature = "rt")]
 extern crate cortex_m_rt;
 #[cfg(feature = "rt")]
-pub use cortex_m_rt::entry;
+pub use hal::entry;
 
 /// The linker will place this boot block at the start of our program image. We
 /// need this to help the ROM bootloader get our code up and running.
@@ -19,11 +20,11 @@ pub use hal::pac;
 hal::bsp_pins!(
     Gpio0 {
         name: tx,
-        aliases: { FunctionUart: UartTx }
+        aliases: { FunctionUart, PullNone: UartTx }
     },
     Gpio1 {
         name: rx,
-        aliases: { FunctionUart: UartRx }
+        aliases: { FunctionUart, PullNone: UartRx }
     },
     Gpio2 { name: d2 },
     Gpio3 { name: d3 },
@@ -37,24 +38,24 @@ hal::bsp_pins!(
     Gpio11 { name: d11 },
     Gpio12 {
         name: sda,
-        aliases: { FunctionI2C: Sda }
+        aliases: { FunctionI2C, PullNone: Sda }
     },
     Gpio13 {
         name: scl,
-        aliases: { FunctionI2C: Scl }
+        aliases: { FunctionI2C, PullNone: Scl }
     },
     Gpio17 { name: neopixel },
     Gpio18 {
         name: sclk,
-        aliases: { FunctionSpi: Sclk }
+        aliases: { FunctionSpi, PullNone: Sclk }
     },
     Gpio19 {
         name: mosi,
-        aliases: { FunctionSpi: Mosi }
+        aliases: { FunctionSpi, PullNone: Mosi }
     },
     Gpio20 {
         name: miso,
-        aliases: { FunctionSpi: Miso }
+        aliases: { FunctionSpi, PullNone: Miso }
     },
     Gpio26 { name: a0 },
     Gpio27 { name: a1 },

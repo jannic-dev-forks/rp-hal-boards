@@ -7,19 +7,23 @@ use panic_halt as _;
 mod app {
 
     use embedded_hal::digital::v2::OutputPin;
-    use embedded_time::duration::Extensions;
+    use fugit::MicrosDurationU32;
     use rp_pico::{
-        hal::{self, clocks::init_clocks_and_plls, watchdog::Watchdog, Sio},
+        hal::{self, clocks::init_clocks_and_plls, timer::Alarm, watchdog::Watchdog, Sio},
         XOSC_CRYSTAL_FREQ,
     };
 
-    const SCAN_TIME_US: u32 = 1000000;
+    const SCAN_TIME_US: MicrosDurationU32 = MicrosDurationU32::secs(1);
 
     #[shared]
     struct Shared {
         timer: hal::Timer,
         alarm: hal::timer::Alarm0,
-        led: hal::gpio::Pin<hal::gpio::pin::bank0::Gpio25, hal::gpio::PushPullOutput>,
+        led: hal::gpio::Pin<
+            hal::gpio::bank0::Gpio25,
+            hal::gpio::FunctionSioOutput,
+            hal::gpio::PullNone,
+        >,
     }
 
     #[local]
@@ -27,9 +31,14 @@ mod app {
 
     #[init]
     fn init(c: init::Context) -> (Shared, Local, init::Monotonics) {
+        // Soft-reset does not release the hardware spinlocks
+        // Release them now to avoid a deadlock after debug or watchdog reset
+        unsafe {
+            hal::sio::spinlock_reset();
+        }
         let mut resets = c.device.RESETS;
         let mut watchdog = Watchdog::new(c.device.WATCHDOG);
-        let _clocks = init_clocks_and_plls(
+        let clocks = init_clocks_and_plls(
             XOSC_CRYSTAL_FREQ,
             c.device.XOSC,
             c.device.CLOCKS,
@@ -48,12 +57,12 @@ mod app {
             sio.gpio_bank0,
             &mut resets,
         );
-        let mut led = pins.led.into_push_pull_output();
+        let mut led = pins.led.reconfigure();
         led.set_low().unwrap();
 
-        let mut timer = hal::Timer::new(c.device.TIMER, &mut resets);
+        let mut timer = hal::Timer::new(c.device.TIMER, &mut resets, &clocks);
         let mut alarm = timer.alarm_0().unwrap();
-        let _ = alarm.schedule(SCAN_TIME_US.microseconds());
+        let _ = alarm.schedule(SCAN_TIME_US);
         alarm.enable_interrupt();
 
         (Shared { timer, alarm, led }, Local {}, init::Monotonics())
@@ -76,7 +85,7 @@ mod app {
         let mut alarm = c.shared.alarm;
         (alarm).lock(|a| {
             a.clear_interrupt();
-            let _ = a.schedule(SCAN_TIME_US.microseconds());
+            let _ = a.schedule(SCAN_TIME_US);
         });
     }
 }

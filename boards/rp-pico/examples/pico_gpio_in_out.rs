@@ -7,13 +7,13 @@
 //! internally by this example. When the button is pressed, the LED will turn
 //! off.
 //!
-//! See the `Cargo.toml` file for Copyright and licence details.
+//! See the `Cargo.toml` file for Copyright and license details.
 
 #![no_std]
 #![no_main]
 
 // The macro for our start-up function
-use cortex_m_rt::entry;
+use rp_pico::entry;
 
 // GPIO traits
 use embedded_hal::digital::v2::{InputPin, OutputPin};

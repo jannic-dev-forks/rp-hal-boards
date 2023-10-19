@@ -5,13 +5,13 @@
 //! This will blink an LED attached to GP25, which is the pin the Pico uses for
 //! the on-board LED.
 //!
-//! See the `Cargo.toml` file for Copyright and licence details.
+//! See the `Cargo.toml` file for Copyright and license details.
 
 #![no_std]
 #![no_main]
 
 // The macro for our start-up function
-use cortex_m_rt::entry;
+use rp_pico::entry;
 
 use cortex_m::prelude::*;
 
@@ -19,7 +19,7 @@ use cortex_m::prelude::*;
 use embedded_hal::digital::v2::OutputPin;
 
 // Traits for converting integers to amounts of time
-use embedded_time::duration::Extensions;
+use fugit::ExtU32;
 
 // Ensure we halt the program on panic (if we don't mention this crate it won't
 // be linked)
@@ -44,7 +44,7 @@ fn main() -> ! {
     // Configure the clocks
     //
     // The default is to generate a 125 MHz system clock
-    let _clocks = hal::clocks::init_clocks_and_plls(
+    let clocks = hal::clocks::init_clocks_and_plls(
         rp_pico::XOSC_CRYSTAL_FREQ,
         pac.XOSC,
         pac.CLOCKS,
@@ -57,7 +57,7 @@ fn main() -> ! {
     .unwrap();
 
     // Configure the Timer peripheral in count-down mode
-    let timer = hal::Timer::new(pac.TIMER, &mut pac.RESETS);
+    let timer = hal::Timer::new(pac.TIMER, &mut pac.RESETS, &clocks);
     let mut count_down = timer.count_down();
 
     // The single-cycle I/O block controls our GPIO pins
@@ -77,12 +77,12 @@ fn main() -> ! {
     loop {
         // LED on, and wait for 500ms
         led_pin.set_high().unwrap();
-        count_down.start(500.milliseconds());
+        count_down.start(500.millis());
         let _ = nb::block!(count_down.wait());
 
         // LED off, and wait for 500ms
         led_pin.set_low().unwrap();
-        count_down.start(500.milliseconds());
+        count_down.start(500.millis());
         let _ = nb::block!(count_down.wait());
     }
 }

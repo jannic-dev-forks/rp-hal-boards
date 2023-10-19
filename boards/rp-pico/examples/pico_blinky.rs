@@ -5,19 +5,16 @@
 //! This will blink an LED attached to GP25, which is the pin the Pico uses for
 //! the on-board LED.
 //!
-//! See the `Cargo.toml` file for Copyright and licence details.
+//! See the `Cargo.toml` file for Copyright and license details.
 
 #![no_std]
 #![no_main]
 
 // The macro for our start-up function
-use cortex_m_rt::entry;
+use rp_pico::entry;
 
 // GPIO traits
 use embedded_hal::digital::v2::OutputPin;
-
-// Time handling traits
-use embedded_time::rate::*;
 
 // Ensure we halt the program on panic (if we don't mention this crate it won't
 // be linked)
@@ -67,7 +64,7 @@ fn main() -> ! {
 
     // The delay object lets us wait for specified amounts of time (in
     // milliseconds)
-    let mut delay = cortex_m::delay::Delay::new(core.SYST, clocks.system_clock.freq().integer());
+    let mut delay = cortex_m::delay::Delay::new(core.SYST, clocks.system_clock.freq().to_Hz());
 
     // The single-cycle I/O block controls our GPIO pins
     let sio = hal::Sio::new(pac.SIO);

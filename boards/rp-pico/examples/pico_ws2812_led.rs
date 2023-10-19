@@ -35,13 +35,13 @@
 //!     - (o) connected lines
 //! ```
 //!
-//! See the `Cargo.toml` file for Copyright and licence details.
+//! See the `Cargo.toml` file for Copyright and license details.
 
 #![no_std]
 #![no_main]
 
 // The macro for our start-up function
-use cortex_m_rt::entry;
+use rp_pico::entry;
 
 // Ensure we halt the program on panic (if we don't mention this crate it won't
 // be linked)
@@ -49,9 +49,6 @@ use panic_halt as _;
 
 // Pull in any important traits
 use rp_pico::hal::prelude::*;
-
-// Embed the `Hz` function/trait:
-use embedded_time::rate::*;
 
 // A shorter alias for the Peripheral Access Crate, which provides low-level
 // register access
@@ -115,14 +112,14 @@ fn main() -> ! {
 
     // Setup a delay for the LED blink signals:
     let mut frame_delay =
-        cortex_m::delay::Delay::new(core.SYST, clocks.system_clock.freq().integer());
+        cortex_m::delay::Delay::new(core.SYST, clocks.system_clock.freq().to_Hz());
 
     // Import the `sin` function for a smooth hue animation from the
     // Pico rp2040 ROM:
-    let sin = rp_pico::hal::rom_data::float_funcs::fsin::ptr();
+    let sin = hal::rom_data::float_funcs::fsin::ptr();
 
     // Create a count down timer for the Ws2812 instance:
-    let timer = Timer::new(pac.TIMER, &mut pac.RESETS);
+    let timer = Timer::new(pac.TIMER, &mut pac.RESETS, &clocks);
 
     // Split the PIO state machine 0 into individual objects, so that
     // Ws2812 can use it:
@@ -132,7 +129,7 @@ fn main() -> ! {
     let mut ws = Ws2812::new(
         // Use pin 6 on the Raspberry Pi Pico (which is GPIO4 of the rp2040 chip)
         // for the LED data output:
-        pins.gpio4.into_mode(),
+        pins.gpio4.into_function(),
         &mut pio,
         sm0,
         clocks.peripheral_clock.freq(),
